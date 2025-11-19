@@ -15,7 +15,6 @@ services:
       - app-network
     restart: unless-stopped
 
-
   jmh-art-db:
     container_name: jmh-art-db
     image: postgres:14.4
@@ -60,7 +59,7 @@ services:
       - jmh-art-db
       - jmh-art-api
 
-    jmh-art-web:
+  jmh-art-web:
     image: 'registry.riven.work/jmh-art-web:latest'
     container_name: jmh-art-web
     networks:
