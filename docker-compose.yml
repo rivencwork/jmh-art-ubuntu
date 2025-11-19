@@ -47,7 +47,6 @@ services:
     volumes:
       - uploads:/app/uploads
     depends_on:
-      - docker-registry
       - jmh-art-db
 
   jmh-art-cms:
@@ -58,11 +57,10 @@ services:
     restart: unless-stopped
     depends_on:
       - nginx-proxy-manager
-      - docker-registry
       - jmh-art-db
       - jmh-art-api
 
-  jmh-art-web:
+    jmh-art-web:
     image: 'registry.riven.work/jmh-art-web:latest'
     container_name: jmh-art-web
     networks:
@@ -70,7 +68,6 @@ services:
     restart: unless-stopped
     depends_on:
       - nginx-proxy-manager
-      - docker-registry
       - jmh-art-db
       - jmh-art-api
 
