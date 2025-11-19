@@ -1,0 +1,83 @@
+services:
+  nginx-proxy-manager:
+    image: 'jc21/nginx-proxy-manager:latest'
+    container_name: nginx-proxy-manager
+    ports:
+      - '80:80'
+      - '81:81'
+      - '443:443'
+    volumes:
+      - ./storages/nginx-proxy-manager/data:/data
+      - ./storages/nginx-proxy-manager/letsencrypt:/etc/letsencrypt
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      - app-network
+    restart: unless-stopped
+
+
+  jmh-art-db:
+    container_name: jmh-art-db
+    image: postgres:14.4
+    ports:
+      - "5432:5432"
+    restart: always
+    environment:
+      TZ: 'Asia/Hong_Kong'
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_DATABASE}
+    volumes:
+      - ./storages/postgresql:/var/lib/postgresql/data
+    networks:
+        - app-network
+
+  jmh-art-api:
+    image: 'registry.riven.work/jmh-art-api:latest'
+    container_name: jmh-art-api
+    environment:
+      DB_HOST: jmh-art-db
+      DB_PORT: ${DB_PORT}
+      DB_DATABASE: ${DB_DATABASE}
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+    networks:
+      - app-network
+    restart: unless-stopped
+    volumes:
+      - uploads:/app/uploads
+    depends_on:
+      - docker-registry
+      - jmh-art-db
+
+  jmh-art-cms:
+    image: 'registry.riven.work/jmh-art-cms:latest'
+    container_name: jmh-art-cms
+    networks:
+      - app-network
+    restart: unless-stopped
+    depends_on:
+      - nginx-proxy-manager
+      - docker-registry
+      - jmh-art-db
+      - jmh-art-api
+
+  jmh-art-web:
+    image: 'registry.riven.work/jmh-art-web:latest'
+    container_name: jmh-art-web
+    networks:
+      - app-network
+    restart: unless-stopped
+    depends_on:
+      - nginx-proxy-manager
+      - docker-registry
+      - jmh-art-db
+      - jmh-art-api
+
+volumes:
+  uploads:
+    driver: local
+
+networks:
+  app-network:
+    driver: bridge
